@@ -49,9 +49,9 @@ def createAdjacencyList(show=False):
         u, v, w = readEdge()
 
         if weighted:
-            adjList[u].append((u, w))
+            adjList[u].append((v, w))
             if undirected:
-                adjList[v].append(v, w)
+                adjList[v].append((u, w))
         else:
             adjList[u].append(v)
             if undirected:
@@ -87,4 +87,4 @@ def createEdgeList(show=False):
     return edges
 
 if __name__ == "__main__":
-    createEdgeList()
+    print(createAdjacencyList())
