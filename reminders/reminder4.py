@@ -1,8 +1,29 @@
+import math
 from reminder1 import createAdjacencyList
 
 INF = 1e9
 
-def dijkstra(graph, start):
+def heuristic(node1, node2):
+    lat1 = math.radians(node1[0])
+    lon1 = math.radians(node1[1])
+    lat2 = math.radians(node2[0])
+    lon2 = math.radians(node2[1])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    # Radius of Earth in kilometers (use 3956 for miles)
+    R = 6371.0
+    
+    # Calculate the distance
+    distance = R * c
+    
+    return distance
+
+def astar(graph, start, end, coordinates):
     distances = [INF] * (len(graph) + 1)
     visited = [False] * (len(graph) + 1)
     parents = [None] * (len(graph) + 1)
@@ -12,7 +33,8 @@ def dijkstra(graph, start):
     while queue:
         queue.sort(key=lambda x: x[1])
 
-        node, currDistance = queue.pop(0)
+        node, _ = queue.pop(0)
+        currDistance = distances[node]
 
         if node == end:
             break
@@ -24,7 +46,7 @@ def dijkstra(graph, start):
             if currDistance + length < distances[neighbour]:
                 distances[neighbour] = currDistance + length
                 parents[neighbour] = node
-                queue.append((neighbour, distances[neighbour]))
+                queue.append((neighbour, distances[neighbour] + heuristic(coordinates[neighbour], coordinates[end])))
 
     return distances, parents
 
@@ -43,11 +65,14 @@ if __name__ == "__main__":
 
     cityIndexes = {}
     nodeLabels = {}
-    with open("../graph/nodes") as f:
+    nodeCoordinates = {}
+    with open("../graph/nodesCoordinates") as f:
         for line in f:
+            line = line.strip('\n')
             line = line.split(' ')
-            cityIndexes[line[1].strip('\n')] = int(line[0])
-            nodeLabels[int(line[0])] = line[1].strip('\n')
+            cityIndexes[line[1]] = int(line[0])
+            nodeLabels[int(line[0])] = line[1]
+            nodeCoordinates[int(line[0])] = (float(line[2]), float(line[3]))
 
     start = input("Pocetni grad: ")
     end = input("Destinacija: ")
@@ -55,7 +80,7 @@ if __name__ == "__main__":
     startNode = cityIndexes[start]
     endNode = cityIndexes[end]
 
-    distances, parents = dijkstra(graph, startNode)
+    distances, parents = astar(graph, startNode, endNode, nodeCoordinates)
     
     path = getPath(endNode, graph, parents)
 

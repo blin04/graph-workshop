@@ -87,4 +87,4 @@ def createEdgeList(show=False):
     return edges
 
 if __name__ == "__main__":
-    print(createAdjacencyList())
+    adjList = createAdjacencyList(show=True)
